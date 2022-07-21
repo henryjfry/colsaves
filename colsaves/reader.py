@@ -440,7 +440,6 @@ class Colony(Bean):
 	def merge_buildings_data(self):
 		global building_bist_globs
 		buildings_bits = list(tools.stream_bits(self.buildings_bitset))
-		#print(buildings_bits)
 		building_bist_glob.append(buildings_bits)
 		self.buildings = [BUILDINGS[building_index] for building_index, build_flag in enumerate(buildings_bits) if build_flag == 1]
 		del self.buildings_bitset
@@ -821,7 +820,6 @@ def read_savegame(filename):
 	with open(filename, "rb") as file:
 		context = Context(file)
 		savegame = format.read(context)
-		#print(savegame)
 
 		f = open("savegame.txt", "w")
 		f.write(str(savegame))
@@ -832,16 +830,12 @@ def read_savegame(filename):
 		for i in savegame.colonies:
 			col_name = i.name
 			col_num = col_num + 1
-			#colonies_dict[col_num] = {}
 			colonies_dict[col_name] = {}
 			colonist_number = 0
 			colonies_dict[col_name]['colonists'] = {}
 			inspect_obj = inspect.getmembers(i, lambda a:not(inspect.isroutine(a)))
 			for z in inspect_obj:
-				#print(z)
 				if ' object at' not in str(z) and 'dummy' not in str(z) and not '__' in str(z):
-					#print(z[0], z[1])
-					#colonies_dict[col_num][z[0]] = z[1]
 					colonies_dict[col_name][z[0]] = z[1]
 			for y in i.colonists:
 				inspect_obj = inspect.getmembers(y, lambda a:not(inspect.isroutine(a)))
@@ -849,16 +843,10 @@ def read_savegame(filename):
 				colonies_dict[col_name]['colonists'][colonist_number] = {}
 				for zy in inspect_obj:
 					if ' object at' not in str(zy) and 'dummy' not in str(zy) and not '__' in str(zy):
-						#print(zy[0], zy[1])
-						#colonies_dict[col_num][zy[0]] = zy[1]
 						colonies_dict[col_name]['colonists'][colonist_number][zy[0]] = zy[1]
-		#print(colonies_dict['Quebec'])
 
-		#draw = ImageDraw.Draw(map_image)
-		#font = ImageFont.truetype("sans-serif.ttf", 16)
-		#draw.text((colonies_dict['Quebec']['x']*16, colonies_dict['Quebec']['y']*16)),'Quebec',(255,255,255),font=font)
 		for i in colonies_dict:
-			print(i)
+			#print(i)
 			building_bits = building_bist_glob[list(colonies_dict.keys()).index(i)]
 			n = 8
 			bits_split = [building_bits[i:i+n] for i in range(0, len(building_bits), n)]
@@ -875,37 +863,10 @@ def read_savegame(filename):
 			else:
 				colony_image = "icons/icons.ss_3.png"
 
-			"""
-			if 'fortress' in str(colonies_dict[i]['buildings']).lower():
-				colony_image = "icons/icons.ss_2.png"
-			elif 'fort' in str(colonies_dict[i]['buildings']).lower() and 'fortress' not in str(colonies_dict[i]['buildings']).lower():
-				colony_image = "icons/icons.ss_1.png"
-			elif 'stockade' in str(colonies_dict[i]['buildings']).lower():
-				colony_image = "icons/icons.ss_0.png"
-			elif 'stockade' not in str(colonies_dict[i]['buildings']).lower() and 'fort' not in str(colonies_dict[i]['buildings']).lower():
-				colony_image = "icons/icons.ss_3.png"
-			"""
-			#print(colony_image)
-			#x = i
-			#for x in colonies_dict[i]:
 			colony_image = read_image(colony_image)
 			map_image.paste(colony_image, (colonies_dict[i]['x']*16, colonies_dict[i]['y']*16),colony_image)
 			ImageDraw.Draw(map_image).text((-len(i) + colonies_dict[i]['x']*16, colonies_dict[i]['y']*16), i + '(' + str(len(colonies_dict[i]['colonists'])) + ')',(255,255,255))
 		map_image.save("map.png", "PNG")
-		"""
-		for i in colonies_dict:
-			print(i)
-			building_bits = building_bist_glob[list(colonies_dict.keys()).index(i)]
-			n = 8
-			bits_split = [building_bits[i:i+n] for i in range(0, len(building_bits), n)]
-			curr_binary = ''
-			for x in bits_split:
-				print(x)
-				for z in x:
-					curr_binary = curr_binary + str(z)
-				break
-		"""
-		#print(colonies_dict[i])
 
 def main():
 	read_savegame(sys.argv[1])
