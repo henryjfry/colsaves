@@ -112,7 +112,6 @@ data/
 # Block Listing
 *.blk
 # generated block image
-*.png
 .eric6project/
 *.e4p
 .vscode
