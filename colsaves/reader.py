@@ -25,6 +25,13 @@ ORDERS = [
 	"road"
 ]
 
+NATION_FLAG = [
+"icons.ss_118.png",
+"icons.ss_119.png",
+"icons.ss_120.png",
+"icons.ss_121.png",
+]
+
 CONTROL = [
 	"player",
 	"ai",
@@ -152,6 +159,80 @@ UNITS = {
 	19: "Brave",
 	20: "Armed Brave",
 	21: "Mounted Brave",
+}
+
+icons = {
+'Stockade': 'icons.ss_0.png',
+'Fort': 'icons.ss_1.png',
+'Fortress': 'icons.ss_2.png',
+'Colony': 'icons.ss_3.png',
+'UNKNOWN': 'icons.ss_4.png',
+'Caravel': 'icons.ss_5.png',
+'Merchantman': 'icons.ss_6.png',
+'Galleon': 'icons.ss_7.png',
+'Wagon Train': 'icons.ss_8.png',
+'Artillery': 'icons.ss_9.png',
+'INDIAN_1': 'icons.ss_10.png',
+'INDIAN_2': 'icons.ss_11.png',
+'INDIAN_3': 'icons.ss_12.png',
+'INDIAN_4': 'icons.ss_13.png',
+'Privateer': 'icons.ss_14.png',
+'Frigate': 'icons.ss_15.png',
+'Treasure': 'icons.ss_16.png',
+'Colonist': 'icons.ss_58.png',
+'Soldier': 'icons.ss_59.png',
+'Pioneer': 'icons.ss_60.png',
+'Missionary': 'icons.ss_61.png',
+'Artillery (damaged)': 'icons.ss_65.png',
+'Indian convert': 'icons.ss_66.png',
+'Colonist (Pioneer)': 'icons.ss_73.png',
+'Vet. Soldier': 'icons.ss_74.png',
+'Scout': 'icons.ss_75.png',
+'Veteran dragoon': 'icons.ss_76.png',
+'Missionary': 'icons.ss_77.png',
+'Farmer': 'icons.ss_81.png',
+'Sugar planter': 'icons.ss_82.png',
+'Tobacco planter': 'icons.ss_83.png',
+'Cotton planter': 'icons.ss_84.png',
+'Fur trapper': 'icons.ss_85.png',
+'Lumberjack': 'icons.ss_86.png',
+'Ore miner': 'icons.ss_87.png',
+'Silver miner': 'icons.ss_88.png',
+'Fisherman': 'icons.ss_89.png',
+'Distiller': 'icons.ss_90.png',
+'Tobacconist': 'icons.ss_91.png',
+'Weaver': 'icons.ss_92.png',
+'Fur Trader': 'icons.ss_93.png',
+'Carpenter': 'icons.ss_94.png',
+'Blacksmith': 'icons.ss_95.png',
+'Gunsmith': 'icons.ss_96.png',
+'Preacher': 'icons.ss_97.png',
+'Statesman': 'icons.ss_98.png',
+'Teacher': 'icons.ss_99.png',
+'Free Colonist': 'icons.ss_100.png',
+'Pioneer': 'icons.ss_101.png',
+'Vet. Soldier': 'icons.ss_102.png',
+'Scout': 'icons.ss_103.png',
+'Veteran dragoon': 'icons.ss_104.png',
+'Missionary': 'icons.ss_105.png',
+'Ind. Servant': 'icons.ss_106.png',
+'Criminal': 'icons.ss_107.png',
+'INDIAN_LAND': 'icons.ss_108.png',
+'Indian convert': 'icons.ss_109.png',
+'Brave': 'icons.ss_109.png',
+'Armed brave': 'icons.ss_110.png',
+'Mounted brave': 'icons.ss_111.png',
+'Armed Mounted brave': 'icons.ss_112.png',
+'English': 'icons.ss_118.png',
+'French': 'icons.ss_119.png',
+'Spanish': 'icons.ss_120.png',
+'Dutch': 'icons.ss_121.png',
+'Regular (Tory Army)': 'icons.ss_125.png',
+'Cavalery (Tory Army)': 'icons.ss_126.png',
+'Man-O-War (Continental Army)': 'icons.ss_127.png',
+'Regular (Continental Army)': 'icons.ss_128.png',
+'Cavalery (Continental Army)': 'icons.ss_129.png',
+'FLAG': 'icons.ss_130.png',
 }
 
 FOUNDING_FATHERS = [
@@ -510,9 +591,9 @@ class Unit(Bean):
 		self.nation = NATIONS[self.nation_index & 15]
 		self.dummy0 = self.nation_index >> 4
 
-#		del self.num_cargo
-#		del self.cargo_types
-#		del self.cargo_amount
+		del self.num_cargo
+		del self.cargo_types
+		del self.cargo_amount
 
 	def __serialize__(self):
 		return tools.object_attributes_to_ordered_dict(
@@ -794,12 +875,17 @@ def write_map(map, map_size):
 	non_land_images = {k: read_image(image_name) for k, image_name in TERRAIN_NON_LAND.items()}
 	forest_images = [read_image("surface/phys0.ss_{:01d}.png".format(i+FOREST_START)) for i in range(16)]
 	mountain_images = [read_image("surface/phys0.ss_{:01d}.png".format(i+MOUNTAIN_START)) for i in range(16)]
-	
+	#RIVER_images = [read_image("surface/phys0.ss_{:01d}.png".format(i+RIVER_START)) for i in range(32)]
+	#HILL_images = [read_image("surface/phys0.ss_{:01d}.png".format(i+HILL_START)) for i in range(16)]
+	#ROADS_images = [read_image("surface/phys0.ss_{:01d}.png".format(i+ROADS_START)) for i in range(24)]
+	#COAST_images = [read_image("surface/phys0.ss_{:01d}.png".format(i+COAST)) for i in range(4)]
+
 	map_image = Image.new("RGBA", (map_size.x*16, map_size.y*16))
 	for index in range(map_size.x * map_size.y):
 		x = index % map_size.x
 		y = index // map_size.x
 		tile = map.tiles[index]
+
 		if tile.non_land == 1:
 			map_image.paste(non_land_images[tile.image_id], (x*16, y*16))
 		else:
@@ -827,9 +913,27 @@ def read_savegame(filename):
 		map_image = write_map(savegame.map, savegame.map_size)
 		colonies_dict = {}
 		col_num = 0
+
+		play_no = 0
+		for i in savegame.players:
+			play_no = play_no + 1
+			if i.byte1 == 192:
+				break
+		if play_no ==1:
+			player = str('English')
+		if play_no ==2:
+			player = str('French')
+		if play_no ==3:
+			player = str('Dutch')
+		if play_no ==4:
+			player = str('Spanish')
+
 		for i in savegame.colonies:
 			col_name = i.name
+			#if i.nation != player:
+				#continue
 			col_num = col_num + 1
+			#colonies_dict[col_num] = {}
 			colonies_dict[col_name] = {}
 			colonist_number = 0
 			colonies_dict[col_name]['colonists'] = {}
@@ -845,8 +949,24 @@ def read_savegame(filename):
 					if ' object at' not in str(zy) and 'dummy' not in str(zy) and not '__' in str(zy):
 						colonies_dict[col_name]['colonists'][colonist_number][zy[0]] = zy[1]
 
+		mapped_colonies = []
 		for i in colonies_dict:
-			#print(i)
+			text_col = [255,255,255]
+			colonies_dict[i]['nation'][0]
+			if colonies_dict[i]['nation'] != player:
+				#continue
+				text_col = [255,0,0]
+			if colonies_dict[i]['nation']  == player:
+				text_col = [255,255,255]
+			if colonies_dict[i]['nation'] == 'English':
+				col_icon = NATION_FLAG[0]
+			elif colonies_dict[i]['nation'] == 'French':
+				col_icon = NATION_FLAG[1]
+			elif colonies_dict[i]['nation'] == 'Spanish':
+				col_icon = NATION_FLAG[2]
+			elif colonies_dict[i]['nation'] == 'Dutch':
+				col_icon = NATION_FLAG[3]
+			colony_image2 = read_image('icons/' + col_icon)
 			building_bits = building_bist_glob[list(colonies_dict.keys()).index(i)]
 			n = 8
 			bits_split = [building_bits[i:i+n] for i in range(0, len(building_bits), n)]
@@ -862,11 +982,121 @@ def read_savegame(filename):
 				colony_image = "icons/icons.ss_0.png" #stockade
 			else:
 				colony_image = "icons/icons.ss_3.png"
-
+			mapped_colonies.append(str(colonies_dict[i]['x']) + '_' + str(colonies_dict[i]['y']))
 			colony_image = read_image(colony_image)
 			map_image.paste(colony_image, (colonies_dict[i]['x']*16, colonies_dict[i]['y']*16),colony_image)
-			ImageDraw.Draw(map_image).text((-len(i) + colonies_dict[i]['x']*16, colonies_dict[i]['y']*16), i + '(' + str(len(colonies_dict[i]['colonists'])) + ')',(255,255,255))
+			map_image.paste(colony_image2, (5+colonies_dict[i]['x']*16, colonies_dict[i]['y']*16),colony_image2)
+			ImageDraw.Draw(map_image).text((-len(i) + colonies_dict[i]['x']*16, colonies_dict[i]['y']*16), i + '['+colonies_dict[i]['nation'][0]+'](' + str(len(colonies_dict[i]['colonists'])) + ')',(text_col[0],text_col[1],text_col[2]))
+			
+		f = open("savegame.txt", "a")
+		village_learned = []
+		village_unlearned = []
+		village_scouted = []
+		village_unscouted = []
+		for i in savegame.tribes:
+			tribe_bin_state = str("{0:04b}".format(i.state))[-4:]
+			tribe_state = ''
+			tribe_name = i.nation + '('+ str(i.population) + ')'
+			
+			village = '(' + str(i.pos.x) + ', ' + str(i.pos.y) + ')   ' + i.nation + '('+ str(i.population) + ')' + ', ' + str('scouted(' + str(tribe_bin_state[0]) + ')' + ', ' + 'capital(' + str(tribe_bin_state[1]) + ')' + ', ' + 'learned(' + str(tribe_bin_state[2]) + ')' +', ' + 'artillery(' + str(tribe_bin_state[3]) + ')') + '\n'
+			
+			if tribe_bin_state[0] == '1':
+				tribe_state = tribe_state + 'S'
+			if tribe_bin_state[1] == '1':
+				#tribe_state = tribe_state + 'C'
+				tribe_name = i.nation + '*('+ str(i.population) + ')'
+			if tribe_bin_state[2] == '1':
+				tribe_state = tribe_state + 'L'
+			if tribe_bin_state[3] == '1':
+				tribe_state = tribe_state + 'A'
+			tribe_name = tribe_name + '(' + tribe_state + ')'
+			if i.nation == "Inca":
+				colony_image = "icons/icons.ss_13.png"
+			elif i.nation == "Aztec":
+				colony_image = "icons/icons.ss_12.png"
+			elif i.nation == "Arawak":
+				colony_image = "icons/icons.ss_11.png"
+			elif i.nation == "Iroquios":
+				colony_image = "icons/icons.ss_11.png"
+			elif i.nation == "Cherokee":
+				colony_image = "icons/icons.ss_11.png"
+			elif i.nation == "Apache":
+				colony_image = "icons/icons.ss_11.png"
+			elif i.nation == "Sioux":
+				colony_image = "icons/icons.ss_10.png"
+			elif i.nation == "Tupi":
+				colony_image = "icons/icons.ss_10.png"
+			colony_image = read_image(colony_image)
+			mapped_colonies.append(str(i.pos.x) + '_' + str(i.pos.y))
+			map_image.paste(colony_image, (i.pos.x*16, i.pos.y*16),colony_image)
+			ImageDraw.Draw(map_image).text((-len(tribe_name) + i.pos.x*16, i.pos.y*16), tribe_name,(0,255,0))
+			if tribe_bin_state[2] == '1':
+				village_learned.append(village)
+			else:
+				village_unlearned.append(village)
+			if tribe_bin_state[0] == '1':
+				village_scouted.append(village)
+			else:
+				village_unscouted.append(village)
+				
+		f.write(str('\n\nLEARNED_VILLAGES:\n'))
+		for i in village_learned:
+			f.write(str(i))
+		f.write(str('\n\nUNLEARNED_VILLAGES:\n'))
+		for i in village_unlearned:
+			f.write(str(i))
+
+		f.write(str('\n\nSCOUTED_VILLAGES:\n'))
+		for i in village_scouted:
+			f.write(str(i))
+		f.write(str('\n\nUNSCOUTED_VILLAGES:\n'))
+		for i in village_unscouted:
+			f.write(str(i))
+
+		f.close()
+		for i in savegame.units:
+			if (str(i.pos.x)+'_'+str(i.pos.y) in mapped_colonies) == False:
+				#print(i.pos.x, i.pos.y, i.type, i.order, i.nation, i.profession)
+				col_type = i.type
+				if str(i.type).lower() == str('Colonist').lower(): # and str(i.profession).lower() != str('Free colonist').lower():
+					col_type = i.profession
+				for x in icons:
+					if x.lower() == str(col_type).lower():
+						unit_icon = "icons/" + icons[x]
+						unit_icon = read_image(unit_icon)
+						map_image.paste(unit_icon, (i.pos.x*16, i.pos.y*16),unit_icon)
+						flag = False
+						if i.nation == 'English':
+							col_icon = NATION_FLAG[0]
+							flag = True
+						elif i.nation == 'French':
+							col_icon = NATION_FLAG[1]
+							flag = True
+						elif i.nation == 'Spanish':
+							col_icon = NATION_FLAG[2]
+							flag = True
+						elif i.nation == 'Dutch':
+							col_icon = NATION_FLAG[3]
+							flag = True
+						if flag == True:
+							colony_image2 = read_image('icons/' + col_icon)
+							map_image.paste(colony_image2, (5+i.pos.x*16, i.pos.y*16),colony_image2)
+							if i.order == 'sentry':
+								ImageDraw.Draw(map_image).text((6+i.pos.x*16, -1+i.pos.y*16), 'S',"black", stroke_width=1,stroke_fill="black")
+							elif i.order == 'trade route':
+								ImageDraw.Draw(map_image).text((6+i.pos.x*16, -1+i.pos.y*16), 'T',"black", stroke_width=1,stroke_fill="black")
+							elif i.order == 'go to':
+								ImageDraw.Draw(map_image).text((6+i.pos.x*16, -1+i.pos.y*16), 'G',"black",  stroke_width=1,stroke_fill="black")
+							elif i.order == 'fortify':
+								ImageDraw.Draw(map_image).text((6+i.pos.x*16, -1+i.pos.y*16), 'F',"black", stroke_width=1,stroke_fill="black")
+							elif i.order == 'plow':
+								ImageDraw.Draw(map_image).text((6+i.pos.x*16, -1+i.pos.y*16), 'P',"black", stroke_width=1,stroke_fill="black")
+							elif i.order == 'road':
+								ImageDraw.Draw(map_image).text((6+i.pos.x*16, -1+i.pos.y*16), 'R',"black", stroke_width=1,stroke_fill="black")
 		map_image.save("map.png", "PNG")
+		import subprocess
+		subprocess.Popen("notepad savegame.txt")
+		Image.open("map.png").show()
 
 def main():
 	read_savegame(sys.argv[1])
