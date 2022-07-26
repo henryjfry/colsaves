@@ -591,9 +591,9 @@ class Unit(Bean):
 		self.nation = NATIONS[self.nation_index & 15]
 		self.dummy0 = self.nation_index >> 4
 
-		del self.num_cargo
-		del self.cargo_types
-		del self.cargo_amount
+		#del self.num_cargo
+		#del self.cargo_types
+		#del self.cargo_amount
 
 	def __serialize__(self):
 		return tools.object_attributes_to_ordered_dict(
